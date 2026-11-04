@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Anjali Boss Fight"
+description = "A colorful mobile-friendly browser game where you choose an animal hero and battle Anjali, a fast, high-damage boss."
+version = "1.0.0"
+id = "artifacts/anjali-boss-fight"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25991
+
+[services.development]
+run = "pnpm --filter @workspace/anjali-boss-fight run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/anjali-boss-fight", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/anjali-boss-fight/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25991"
+BASE_PATH = "/"

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ANJALI: THE IMPOSSIBLE BOSS</title>
+<style>
+/* ============ BASIC STYLES ============ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;background:#120a24;color:#fff;font-family:'Trebuchet MS',system-ui,sans-serif;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:10px;overflow-y:auto;touch-action:pan-y;
+  background:radial-gradient(circle at 50% 20%,#4a1a6b,#1b0b33 70%)}
+.screen.on{display:flex}
+h1{margin:4px 0;font-size:clamp(22px,6vw,44px);text-align:center;text-shadow:0 3px 0 #8e1f58,0 0 20px #ff7eb6;letter-spacing:1px}
+h2{margin:6px 0;text-align:center}
+.sub{opacity:.85;text-align:center;margin:2px 0 10px;font-size:14px}
+.btn{background:linear-gradient(#ff7eb6,#e0368a);border:0;border-radius:16px;color:#fff;font-weight:800;padding:12px 18px;font-size:16px;
+  box-shadow:0 4px 0 #8e1f58;cursor:pointer;margin:4px;font-family:inherit}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8e1f58}
+.btn.alt{background:linear-gradient(#7c8cff,#4a52d8);box-shadow:0 4px 0 #2a2f86}
+.btn.gold{background:linear-gradient(#ffe066,#f2a900);color:#4a2c00;box-shadow:0 4px 0 #9a6a00}
+.btn.sel{outline:4px solid #fff}
+.row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center}
+.cards{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:900px}
+.card{width:150px;background:rgba(255,255,255,.1);border:3px solid transparent;border-radius:18px;padding:8px;text-align:center;cursor:pointer}
+.card.sel{border-color:#ffe066;background:rgba(255,224,102,.2)}
+.card b{display:block;margin-top:2px}
+.card small{display:block;font-size:11px;opacity:.85;min-height:28px}
+.pips{font-size:11px;text-align:left;margin-top:4px}
+.pips span{display:inline-block;width:10px;height:7px;background:#ffffff40;margin-right:2px;border-radius:2px}
+.pips span.on{background:#ffe066}
+#photoPrev{width:70px;height:70px;border-radius:50%;border:3px solid #fff;background:#222 center/cover;margin:4px}
+.modes .btn{min-width:210px}
+.modeDesc{min-height:34px;font-size:13px;opacity:.9;text-align:center;max-width:420px}
+
+/* ============ GAME SCREEN ============ */
+#game{background:#0b0616;justify-content:flex-start;touch-action:none;padding:0;overflow:hidden}
+#stage{position:relative;width:min(100vw,calc(56vh*16/9));margin-top:4px}
+#cv{width:100%;height:auto;display:block;border-radius:12px;background:#222;touch-action:none}
+#hud{position:absolute;left:0;right:0;top:0;padding:4px 6px;display:flex;gap:6px;align-items:flex-start;pointer-events:none;font-size:clamp(9px,2.2vw,13px);font-weight:800}
+.bw{flex:1}
+.bw span{text-shadow:0 1px 2px #000}
+.bar{height:11px;background:#0008;border-radius:8px;overflow:hidden;border:1px solid #fff6;margin-top:2px}
+.bar i{display:block;height:100%;width:100%;transition:width .2s}
+#pbar{background:linear-gradient(#7dff7d,#1fb81f)}
+#ebar{background:linear-gradient(#7fd7ff,#2b8fe0);height:100%}
+.bar.en{height:7px}
+#bbar{background:linear-gradient(#ff8ab8,#e0368a)}
+.mid{text-align:center;min-width:70px;text-shadow:0 1px 2px #000}
+#combo{color:#ffe066;font-size:1.3em;min-height:1.2em}
+#topbtns{position:absolute;right:6px;top:46px;display:flex;flex-direction:column;gap:5px}
+#topbtns button{width:34px;height:34px;border-radius:50%;border:2px solid #fff8;background:#0007;color:#fff;font-size:16px;cursor:pointer}
+#pad{width:min(100vw,720px);display:flex;justify-content:space-between;align-items:center;padding:8px 6px;gap:6px;touch-action:none}
+.grp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pbtn{position:relative;overflow:hidden;width:62px;height:58px;border-radius:16px;border:2px solid #fff7;background:linear-gradient(#6a3aa8,#3a1a70);
+  color:#fff;font-size:20px;font-weight:800;line-height:1;touch-action:none;font-family:inherit}
+.pbtn small{display:block;font-size:10px;margin-top:2px}
+.pbtn.down,.pbtn:active{background:linear-gradient(#ff7eb6,#e0368a)}
+.pbtn u{position:absolute;left:0;bottom:0;width:100%;height:0;background:rgba(0,0,0,.6);pointer-events:none}
+.pbtn.locked{opacity:.45}
+.mv .pbtn{width:78px;height:74px;font-size:30px}
+.acts{max-width:330px}
+
+/* ============ OVERLAYS ============ */
+.ov{position:fixed;inset:0;background:rgba(10,4,25,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;padding:12px;overflow-y:auto;touch-action:pan-y}
+.ov.on{display:flex}
+.ov .box{background:#2a1450;border:3px solid #ff7eb6;border-radius:20px;padding:14px;max-width:560px;width:100%;text-align:center}
+.up{display:flex;align-items:center;gap:8px;background:#ffffff14;border-radius:12px;padding:6px 8px;margin:5px 0;text-align:left}
+.up .n{flex:1;font-size:14px;font-weight:800}
+.up .n small{display:block;font-weight:400;opacity:.8;font-size:11px}
+.up .lv{font-size:12px;color:#ffe066}
+.up .btn{padding:6px 10px;font-size:13px;margin:0}
+#endTitle{font-size:clamp(22px,6vw,38px);color:#ffe066;text-shadow:0 3px 0 #8e1f58}
+#endLines p{margin:5px 0;font-size:15px;animation:pop .5s both}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.hint{font-size:11px;opacity:.7;margin-top:6px}
+
+@media (orientation:landscape) and (max-height:520px){
+  #stage{width:min(100vw,calc(100vh*16/9));margin-top:0}
+  #game{justify-content:center}
+  #pad{position:absolute;left:0;right:0;bottom:4px;width:100%;padding:0 8px;pointer-events:none}
+  #pad .pbtn{pointer-events:auto;opacity:.8;width:52px;height:46px;font-size:17px}
+  #pad .mv .pbtn{width:62px;height:58px}
+  .pbtn small{display:none}
+}
+</style>
+<link rel="stylesheet" href="/game.css">
+</head>
+<body>
+
+<!-- ============ MENU ============ -->
+<div id="menu" class="screen on">
+  <h1>ANJALI <span class="title-divider">/</span> THE IMPOSSIBLE BOSS</h1>
+  <p class="sub">Pick your tiny champion. Survive the queen of big damage.</p>
+  <div class="row">
+    <div id="photoPrev"></div>
+    <div>
+      <label class="btn alt photo-upload">Add a face<input type="file" id="photoIn" accept="image/*" hidden></label>
+      <button class="btn photo-clear" id="photoClear">Panda mask</button>
+    </div>
+  </div>
+  <h2>Choose the challenge</h2>
+  <div class="row modes" id="modeBtns"></div>
+  <div class="modeDesc" id="modeDesc"></div>
+  <div class="row">
+    <button class="btn gold" id="toSelect">Choose your hero</button>
+    <button class="btn alt" id="menuUp">Skill upgrades</button>
+    <button class="btn alt muteBtn" aria-label="Toggle sound">Sound on</button>
+  </div>
+  <p class="hint">Touch controls ready · Keyboard: A/D move · Space jump · J attack · K fire · P pause</p>
+</div>
+
+<!-- ============ HERO SELECT ============ -->
+<div id="select" class="screen">
+  <h1>Choose Your Hero</h1>
+  <p class="sub">Each hero has different stats and powers.</p>
+  <div class="cards" id="heroCards"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn alt" id="selBack">◀ Back</button>
+  <button class="btn gold" id="startBtn">Start fight</button>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div id="game" class="screen">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="hud">
+      <div class="bw"><span id="pname">Hero</span><div class="bar"><i id="pbar"></i></div><div class="bar en"><i id="ebar"></i></div><small id="lives" class="life-count">3 LIVES LEFT</small></div>
+      <div class="mid"><div id="combo"></div><div id="coins">Coins 0</div><div id="timer"></div></div>
+      <div class="bw boss-hud" style="text-align:right"><span>Anjali · BOSS</span><div class="bar"><i id="bbar"></i></div></div>
+    </div>
+    <div id="topbtns">
+       <button id="btnPause" aria-label="Pause">Ⅱ</button>
+       <button class="muteBtn" aria-label="Toggle sound">S</button>
+       <button id="btnUp" aria-label="Upgrades">+</button>
+    </div>
+  </div>
+  <div id="pad">
+    <div class="grp mv"><button class="pbtn" data-hold="left" aria-label="Move left">◀</button><button class="pbtn" data-hold="right" aria-label="Move right">▶</button></div>
+    <div class="grp acts">
+      <button class="pbtn" data-act="attack">A<small>Attack</small><u></u></button>
+      <button class="pbtn" data-act="fire">F<small>Fire</small><u></u></button>
+      <button class="pbtn" data-act="heal">H<small>Heal</small><u></u></button>
+      <button class="pbtn" data-act="jump">J<small>Jump</small><u></u></button>
+      <button class="pbtn" data-act="dodge">D<small>Dodge</small><u></u></button>
+      <button class="pbtn" data-act="special">S<small>Special</small><u></u></button>
+      <button class="pbtn" data-act="ultimate">U<small>Ultimate</small><u></u></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAUSE ============ -->
+<div id="pauseOv" class="ov"><div class="box">
+  <h2>Paused</h2>
+  <button class="btn gold" id="pResume">Resume fight</button>
+  <button class="btn" id="pRestart">Restart</button>
+  <button class="btn alt" id="pMenu">Main menu</button>
+</div></div>
+
+<!-- ============ UPGRADES ============ -->
+<div id="upOv" class="ov"><div class="box">
+  <h2>Skill upgrades</h2>
+  <div style="font-size:18px;font-weight:800;color:#ffe066" id="upCoins"></div>
+  <div id="upList"></div>
+  <button class="btn" id="upReset">Reset upgrades · refund coins</button>
+  <button class="btn gold" id="upClose">Done</button>
+  <p class="hint">Every upgrade helps. Anjali still holds the crown.</p>
+</div></div>
+
+<!-- ============ ENDING ============ -->
+<div id="endOv" class="ov"><div class="box">
+  <div id="endTitle">Anjali keeps the crown.</div>
+  <div id="endLines"></div>
+  <div id="endStats" class="hint" style="font-size:13px"></div>
+  <div class="row" style="margin-top:8px">
+     <button class="btn gold" id="eAgain">Fight again</button>
+     <button class="btn alt" id="eHero">Choose another hero</button>
+     <button class="btn alt" id="eUp">Skill upgrades</button>
+     <button class="btn" id="eMenu">Menu</button>
+  </div>
+</div></div>
+
+<script>
+/* =====================================================================
+   ANJALI: THE IMPOSSIBLE BOSS  —  one-file browser game
+   Sections:  1) data   2) save   3) audio   4) drawing   5) game logic
+              6) rendering   7) input   8) menus
+   The fight has two real outcomes: Anjali can win, and the hero can defeat her.
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const W = 800, H = 450, GROUND = 385;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const rnd = (a,b) => a + Math.random()*(b-a);
+
+/* ---------- 1) DATA ---------- */
+const HEROES = [
+ {id:'cat',  name:'Meow Cat',      sprite:'/assets/cat-hero.jpg',    color:'#ffa94d', belly:'#fff4e0', spd:1.25, atk:1.0, def:1.0,  heal:1.0, fire:1.0, jmp:1.0,  dj:true, acd:.22, dodgeX:1,   desc:'Super fast attacks and a double jump!', stats:[5,3,3,3]},
+ {id:'dog',  name:'Brave Dog',     sprite:'/assets/dog-hero.jpg',    color:'#c68b59', belly:'#f5deb3', spd:.95,  atk:1.4, def:.7,   heal:1.0, fire:1.0, jmp:1.0,  acd:.40, dodgeX:1,   desc:'Powerful punches and strong defense.',  stats:[3,4,5,3]},
+ {id:'fox',  name:'Boxer Monkey',  sprite:'/assets/monkey-hero.jpg', color:'#76543d', belly:'#d8b79b', spd:1.1,  atk:1.0, def:1.0,  heal:1.0, fire:1.5, jmp:1.05, acd:.30, dodgeX:1.5, desc:'Quick dashes and extra strong fire.',   stats:[4,3,3,3]},
+ {id:'bunny',name:'Fluffy Sheep',  sprite:'/assets/sheep-hero.jpg',  color:'#f4e9d8', belly:'#ffffff', spd:1.15, atk:.8,  def:1.0,  heal:1.7, fire:1.0, jmp:1.2,  acd:.30, dodgeX:1.4, desc:'Healing and evasive skills.',           stats:[4,2,3,5]},
+ {id:'bear', name:'Panda Warrior', sprite:'/assets/panda-hero.jpg', color:'#29252b', belly:'#f4f1e8', spd:.75,  atk:1.7, def:.85,  heal:1.0, fire:1.0, jmp:.9,   acd:.65, dodgeX:.9,  desc:'Heavy attacks with a calm, steady style.', stats:[2,5,4,3]}
+];
+const HERO_SPRITES = Object.create(null);
+for (const hero of HEROES) {
+  const image = new Image();
+  image.onload = () => { HERO_SPRITES[hero.id] = image; };
+  image.src = hero.sprite;
+}
+const MODES = {
+  training:  {name:'TRAINING',      time:45,  atk:0,    dmg:0,    desc:'Practise your moves. Anjali watches from the sidelines.'},
+  normal:    {name:'NORMAL BATTLE', time:90,  atk:1.55, dmg:1.15, desc:'A fast, fair fight with Anjali.'},
+  impossible:{name:'IMPOSSIBLE',    time:120, atk:1.25, dmg:1.35, extra:true, desc:'Anjali attacks faster and adds firestorms.'},
+  endless:   {name:'ENDLESS',       time:Infinity, atk:1.4, dmg:1.2, endless:true, desc:'Survive as long as you can. Track your time and combo record.'},
+  final:     {name:'FINAL BOSS',    time:150, atk:1.1, dmg:1.55, extra:true, final:true, desc:'Face Anjali at her fastest and strongest.'}
+};
+const UPS = [
+  {k:'fire',   n:'Fire power',    d:'Stronger fire attacks'},
+  {k:'heal',   n:'Healing power', d:'Restore more health'},
+  {k:'speed',  n:'Speed boost',   d:'Move faster'},
+  {k:'jump',   n:'Super jump',    d:'Jump higher'},
+  {k:'shield', n:'Shield power',  d:'Take less damage'},
+  {k:'special',n:'Special attack',d:'Unlock a triple star blast (key U)'},
+  {k:'ult',    n:'Ultimate skill',d:'Unlock a spectacular mega attack (key I)'}
+];
+const MAXLV = 5;
+const upCost = lv => 20 + 20*lv;
+const TAUNTS = ["Did you really think you could defeat me?","That was a close call, hero.","Keep your guard up.","You can still turn this fight around.","Is that all you've got?","One clean hit can change this fight.","Aww, that tickled!"];
+
+/* ---------- 2) SAVE / LOAD (localStorage) ---------- */
+let save = {coins:100, up:{}, best:{}, mute:false, hero:'cat', mode:'normal'};
+try { const s = JSON.parse(localStorage.getItem('anjaliGameV1')); if (s) save = Object.assign(save, s); } catch(e){}
+function saveNow(){ try { localStorage.setItem('anjaliGameV1', JSON.stringify(save)); } catch(e){} }
+const L = k => save.up[k] || 0;
+
+/* ---------- photo for Anjali's face ---------- */
+let photo = null, photoReady = false;
+function setPhoto(url, store){
+  const im = new Image();
+  im.onload = () => { photo = im; photoReady = true; $('photoPrev').style.backgroundImage = 'url('+url+')'; };
+  im.onerror = () => { photoReady = false; };
+  im.src = url;
+  if (store) { try { localStorage.setItem('anjaliPhotoV1', url); } catch(e){} }
+}
+(function initPhoto(){
+  let u = null; try { u = localStorage.getItem('anjaliPhotoV1'); } catch(e){}
+  if (u) setPhoto(u, false); else setPhoto('/assets/anjali-portrait.jpg', false);
+})();
+$('photoIn').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {            // shrink to 256px so it saves nicely
+      const s = 256, c = document.createElement('canvas'); c.width = c.height = s;
+      const x = c.getContext('2d'), sc = Math.max(s/im.width, s/im.height);
+      x.drawImage(im, (s-im.width*sc)/2, (s-im.height*sc)/2, im.width*sc, im.height*sc);
+      setPhoto(c.toDataURL('image/jpeg', .85), true);
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(f);
+};
+$('photoClear').onclick = () => { photo = null; photoReady = false; $('photoPrev').style.backgroundImage = 'none'; try { localStorage.removeItem('anjaliPhotoV1'); } catch(e){} };
+
+/* ---------- 3) AUDIO (all sounds are synthesized, nothing to download) ---------- */
+let AC = null;
+function audioInit(){
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+  if (AC && AC.state === 'suspended') AC.resume();
+}
+function tone(f, d, type, vol, slide){
+  if (!AC || save.mute) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+  g.gain.setValueAtTime(vol || .08, t);
+  g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d);
+}
+const sfx = {
+  punch:()=>tone(180,.1,'square',.1,-100),
+  fire:()=>tone(320,.35,'sawtooth',.06,-220),
+  heal:()=>{tone(523,.12,'sine',.08);setTimeout(()=>tone(784,.22,'sine',.08),100);},
+  up:()=>{tone(440,.1,'triangle',.1);setTimeout(()=>tone(660,.1,'triangle',.1),90);setTimeout(()=>tone(880,.2,'triangle',.1),180);},
+  hurt:()=>tone(220,.25,'sawtooth',.08,-140),
+  jump:()=>tone(300,.15,'sine',.07,300),
+  block:()=>tone(900,.12,'triangle',.08,-300),
+  ult:()=>{tone(150,.8,'sawtooth',.1,700);setTimeout(()=>tone(600,.5,'square',.07,-400),300);},
+  boss:()=>{tone(120,.5,'sawtooth',.1,-30);setTimeout(()=>tone(180,.4,'square',.07),150);},
+  win:()=>{[523,659,784,1047,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,.25,'triangle',.1),i*140));}
+};
+let mstep = 0;
+setInterval(() => {   // simple background music loop
+  if (!AC || save.mute || !G || !G.run || G.paused) return;
+  const sc = G.cfg.final ? [196,233,262,311,392] : [262,330,392,440,523];
+  const pat = [0,2,4,2,1,3,4,3];
+  tone(sc[pat[mstep%8]]/2, .2, 'triangle', .035);
+  if (mstep%4 === 0) tone(sc[0]/4, .35, 'sine', .05);
+  mstep++;
+}, 260);
+function refreshMute(){ document.querySelectorAll('.muteBtn').forEach(b => b.textContent = save.mute ? 'Sound off' : 'Sound on'); }
+document.querySelectorAll('.muteBtn').forEach(b => b.onclick = () => { audioInit(); save.mute = !save.mute; saveNow(); refreshMute(); });
+
+/* ---------- 4) DRAWING (all characters are drawn in code) ---------- */
+function ell(c,x,y,rx,ry,col){ c.fillStyle = col; c.beginPath(); c.ellipse(x,y,rx,ry,0,0,6.2832); c.fill(); }
+function tri(c,x1,y1,x2,y2,x3,y3,col){ c.fillStyle = col; c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.fill(); }
+function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+
+/* Draw one hero. (x,y) = feet position. o = {atk,dodge,sleepy,down} */
+function drawHero(c, x, y, h, face, t, o){
+  o = o || {};
+  const sprite = HERO_SPRITES[h.id];
+  if (sprite && sprite.complete && sprite.naturalWidth) {
+    const bob = Math.sin(t*6)*1.6;
+    c.save(); c.translate(x, y); c.scale(face, 1);
+    if (o.down) c.rotate(-1.35);
+    if (o.dodge) c.globalAlpha = .5;
+    rr(c, -36, -108+bob, 72, 102, 14); c.clip();
+    c.drawImage(sprite, -36, -108+bob, 72, 102);
+    c.restore();
+    c.save(); c.translate(x, y); c.scale(face, 1);
+    rr(c, -36, -108+bob, 72, 102, 14);
+    c.strokeStyle = h.id === 'cat' ? '#ffd66c' : 'rgba(255,255,255,.8)';
+    c.lineWidth = 2; c.stroke(); c.restore();
+    return;
+  }
+  c.save(); c.translate(x, y); c.scale(face, 1);
+  if (o.down) c.rotate(-1.35);
+  if (o.dodge) c.globalAlpha = .5;
+  const bob = Math.sin(t*6)*1.6, col = h.color;
+  // tail
+  c.save(); c.translate(-20,-24); c.rotate(Math.sin(t*8)*.35);
+  if (h.id==='fox'){ ell(c,-14,0,18,9,col); ell(c,-27,0,7,7,'#fff'); }
+  else if (h.id==='bunny'){ ell(c,-8,0,8,8,'#fff'); }
+  else if (h.id==='cat'){ ell(c,-14,-4,15,5,col); }
+  else ell(c,-8,0,9,6,col);
+  c.restore();
+  // feet + body
+  ell(c,-11,-4,10,6,col); ell(c,11,-4,10,6,col);
+  ell(c,0,-30+bob/2,22,26,col); ell(c,0,-26+bob/2,14,18,h.belly);
+  // arm
+  const ax = 22 + (o.atk ? 22 : 0);
+  ell(c,ax,-34,o.atk?13:8,8,col);
+  // ears
+  const hy = -66 + bob;
+  if (h.id==='cat'){ tri(c,-20,hy-6,-15,hy-32,-4,hy-16,col); tri(c,4,hy-16,15,hy-32,20,hy-6,col); tri(c,-17,hy-12,-15,hy-26,-9,hy-16,'#ffc2d4'); }
+  else if (h.id==='dog'){ ell(c,-21,hy+2,8,16,'#7a4a26'); ell(c,21,hy+2,8,16,'#7a4a26'); }
+  else if (h.id==='fox'){ tri(c,-21,hy-4,-17,hy-38,-3,hy-14,col); tri(c,3,hy-14,17,hy-38,21,hy-4,col); tri(c,-19,hy-22,-17,hy-38,-12,hy-26,'#222'); tri(c,12,hy-26,17,hy-38,19,hy-22,'#222'); }
+  else if (h.id==='bunny'){ ell(c,-10,hy-28,6,20,col); ell(c,10,hy-28,6,20,col); ell(c,-10,hy-28,3,14,'#ff9ec2'); ell(c,10,hy-28,3,14,'#ff9ec2'); }
+  else { ell(c,-17,hy-14,8,8,col); ell(c,17,hy-14,8,8,col); ell(c,-17,hy-14,4,4,'#d7b79b'); ell(c,17,hy-14,4,4,'#d7b79b'); }
+  // head
+  ell(c,0,hy,22,20,col);
+  if (h.id==='fox'){ tri(c,-22,hy+4,-6,hy+8,-20,hy+16,'#fff'); tri(c,22,hy+4,6,hy+8,20,hy+16,'#fff'); }
+  ell(c,5,hy+7,11,8,h.belly);
+  // eyes
+  if (o.sleepy || o.down){
+    c.strokeStyle='#222'; c.lineWidth=2.5; c.beginPath(); c.moveTo(-14,hy-2); c.lineTo(-5,hy-2); c.moveTo(5,hy-2); c.lineTo(14,hy-2); c.stroke();
+  } else {
+    ell(c,-8,hy-3,4,4.5,'#222'); ell(c,9,hy-3,4,4.5,'#222'); ell(c,-7,hy-4.5,1.4,1.4,'#fff'); ell(c,10,hy-4.5,1.4,1.4,'#fff');
+  }
+  ell(c,9,hy+3,3,2.2,'#333');
+  c.strokeStyle='#333'; c.lineWidth=1.6; c.beginPath(); c.arc(7,hy+5,4,.2,2.6); c.stroke();
+  ell(c,-13,hy+6,4,2.5,'#ff8fb1aa');
+  c.restore();
+}
+
+/* Draw Anjali's boss character. mood: 'idle','cast','win','defeated' */
+function drawBoss(c, x, y, t, mood){
+  c.save(); c.translate(x, y);
+  if (mood === 'defeated') { c.rotate(1.05); c.globalAlpha = .72; }
+  c.scale(1.15, 1.15);
+  const bob = Math.sin(t*4)*3, up = (mood==='win'||mood==='cast');
+  // cape
+  c.fillStyle = '#c2185b'; c.beginPath();
+  c.moveTo(-26,-72+bob); c.lineTo(26,-72+bob); c.lineTo(46+Math.sin(t*5)*7,-6); c.lineTo(-46+Math.sin(t*5+1)*7,-6); c.closePath(); c.fill();
+  // legs, body
+  ell(c,-17,-8,13,10,'#222'); ell(c,17,-8,13,10,'#222');
+  ell(c,0,-44+bob,32,36,'#fff');
+  ell(c,0,-40+bob,22,24,'#f6f6f6');
+  // arms
+  c.save(); c.translate(-30,-60+bob); c.rotate(up ? -2.4 + Math.sin(t*9)*.3 : .3); ell(c,0,14,9,19,'#222'); c.restore();
+  c.save(); c.translate(30,-60+bob);  c.rotate(up ? 2.4 - Math.sin(t*9)*.3 : -.3); ell(c,0,14,9,19,'#222'); c.restore();
+  // ears
+  const hy = -104 + bob;
+  ell(c,-27,hy-28,12,12,'#222'); ell(c,27,hy-28,12,12,'#222'); ell(c,-27,hy-28,6,6,'#ff9ec2'); ell(c,27,hy-28,6,6,'#ff9ec2');
+  // head
+  ell(c,0,hy,35,32,'#fff'); c.strokeStyle='#222'; c.lineWidth=2.5; c.beginPath(); c.ellipse(0,hy,35,32,0,0,6.2832); c.stroke();
+  if (photoReady && photo){
+    // her real photo as the face!
+    c.save(); c.beginPath(); c.arc(0,hy+2,29,0,6.2832); c.clip();
+    const s = Math.max(58/photo.width, 58/photo.height);
+    c.drawImage(photo, -photo.width*s/2, hy+2-photo.height*s/2, photo.width*s, photo.height*s);
+    c.restore();
+    c.strokeStyle = '#ff7eb6'; c.lineWidth = 3; c.beginPath(); c.arc(0,hy+2,29,0,6.2832); c.stroke();
+  } else {
+    // cute panda face
+    c.save(); c.translate(-14,hy-2); c.rotate(.5); ell(c,0,0,9,12,'#222'); c.restore();
+    c.save(); c.translate(14,hy-2);  c.rotate(-.5); ell(c,0,0,9,12,'#222'); c.restore();
+    ell(c,-14,hy-3,3.2,3.5,'#fff'); ell(c,14,hy-3,3.2,3.5,'#fff'); ell(c,-14,hy-3,1.6,1.6,'#222'); ell(c,14,hy-3,1.6,1.6,'#222');
+    ell(c,0,hy+8,5,3.5,'#222');
+    c.strokeStyle='#222'; c.lineWidth=2; c.beginPath();
+    c.arc(0,hy+10,(mood==='idle'?8:11),.15,Math.PI-.15); c.stroke();
+    ell(c,-24,hy+10,5,3,'#ff8fb1aa'); ell(c,24,hy+10,5,3,'#ff8fb1aa');
+  }
+  // crown
+  c.fillStyle = '#ffd43b'; c.beginPath();
+  c.moveTo(-18,hy-30); c.lineTo(-20,hy-52); c.lineTo(-9,hy-40); c.lineTo(0,hy-56); c.lineTo(9,hy-40); c.lineTo(20,hy-52); c.lineTo(18,hy-30); c.closePath(); c.fill();
+  ell(c,0,hy-36,3,3,'#e0368a');
+  c.restore();
+}
+
+/* ---------- 5) GAME LOGIC ---------- */
+let G = null;                       // current game state (null when in a menu)
+const held = {left:false, right:false};
+
+function maxHP(){ return 100; }
+function newGame(){
+  const h = HEROES.find(x => x.id === save.hero) || HEROES[0];
+  const cfg = MODES[save.mode] || MODES.normal;
+  const bossHP = cfg.final ? 780 : cfg.extra ? 700 : cfg.endless ? 900 : cfg.training ? 360 : 560;
+  return {
+    h, cfg, t:0, run:true, paused:false, ending:false, endT:0, shown:false,
+    shake:0, flash:0, combo:0, comboT:0, bestCombo:0, kos:0, earned:0,
+    p:{x:140, y:GROUND, vy:0, face:1, hp:maxHP(), lives:3, energy:100, jumps:0, inv:0, atkT:0, dodgeT:0, idle:0},
+    boss:{x:640, y:GROUND, hp:bossHP, max:bossHP, state:'idle', flash:0, msg:'', msgT:0, atkT:1.1, castT:0, dp:0, hitDone:false, tx:640},
+    proj:[], haz:[], parts:[], txt:[], bon:[], ult:null,
+    cd:{attack:0,fire:0,heal:0,dodge:0,special:0,ultimate:0},
+    cdm:{attack:h.acd,fire:.8,heal:4,dodge:1.2,special:5,ultimate:20},
+    bonT:6, tauntT:3, ch:{c10:false,t30:false,t60:false}
+  };
+}
+
+/* helpers: floating text, particles, coins */
+function say(m, t){ G.boss.msg = m; G.boss.msgT = t || 2.5; }
+function ftext(x,y,s,col,size){ G.txt.push({x,y,s,col:col||'#fff',size:size||20,life:1}); }
+function burst(x,y,n,col,type,spd){
+  for (let i=0; i<n && G.parts.length<170; i++){
+    const a = Math.random()*6.2832, s = Math.random()*(spd||200);
+    G.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:rnd(.5,1.1),max:1.1,col:col||'#fff',s:rnd(3,7),type:type||'c'});
+  }
+}
+function earn(n){ save.coins += n; G.earned += n; }
+
+/* ----- player actions ----- */
+function doAction(a){
+  if (!G || !G.run || G.paused || G.ending) return;
+  const p = G.p, b = G.boss, h = G.h;
+  if (a !== 'jump' && G.cd[a] > 0) return;
+  p.idle = 0;
+  const toward = b.x > p.x ? 1 : -1;
+  if (a === 'jump'){
+    const max = h.dj ? 2 : 1;
+    if (p.jumps < max){ p.vy = -560*h.jmp*(1+.1*L('jump')); p.jumps++; sfx.jump(); burst(p.x,p.y,5,'#fff'); }
+  }
+  else if (a === 'attack'){
+    G.cd.attack = h.acd; p.atkT = .2; p.face = toward;
+    if (Math.abs(b.x - p.x) < 100 && p.y > GROUND-110) hitBoss(18*h.atk, b.x-30, b.y-100);
+    else { sfx.punch(); }
+    p.energy = Math.min(100, p.energy + 3);
+  }
+  else if (a === 'fire'){
+    if (p.energy < 20) { ftext(p.x,p.y-90,'Need energy!','#9cf',16); return; }
+    p.energy -= 20; G.cd.fire = .8; p.face = toward; sfx.fire();
+    G.proj.push({x:p.x+p.face*30,y:p.y-45,vx:p.face*440,fr:true,dmg:30*h.fire*(1+.25*L('fire')),r:12});
+  }
+  else if (a === 'heal'){
+    if (p.energy < 30) { ftext(p.x,p.y-90,'Need energy!','#9cf',16); return; }
+    p.energy -= 30; G.cd.heal = 4;
+    const amt = 28*h.heal*(1+.25*L('heal'));
+    p.hp = Math.min(maxHP(), p.hp + amt);
+    ftext(p.x,p.y-90,'+'+Math.round(amt),'#7dff7d',22); burst(p.x,p.y-40,14,'#ff7eb6','h',90); sfx.heal();
+  }
+  else if (a === 'dodge'){
+    G.cd.dodge = 1.2; p.dodgeT = .26*h.dodgeX; p.inv = Math.max(p.inv, .3*h.dodgeX); burst(p.x,p.y-30,8,'#cde'); sfx.jump();
+  }
+  else if (a === 'special'){
+    if (L('special') < 1){ ftext(p.x,p.y-90,'Upgrade to unlock! ⭐','#ffe066',16); return; }
+    if (p.energy < 50){ ftext(p.x,p.y-90,'Need energy!','#9cf',16); return; }
+    p.energy -= 50; G.cd.special = 5; p.face = toward; sfx.fire();
+    for (let i=-1;i<=1;i++) G.proj.push({x:p.x+p.face*30,y:p.y-45,vx:p.face*420,vy:i*90,fr:true,star:true,dmg:36*(1+.2*L('special')),r:11});
+  }
+  else if (a === 'ultimate'){
+    if (L('ult') < 1){ ftext(p.x,p.y-90,'Upgrade to unlock! 💥','#ffe066',16); return; }
+    G.cd.ultimate = Math.max(10, 22 - 2*L('ult')); p.face = toward; sfx.ult(); G.flash = .6; G.shake = 12;
+    G.ult = {t:0, hits:6, dmg:220*(1+.2*L('ult'))/6};
+    burst(p.x,p.y-50,40,'#ffe066','s',320);
+  }
+}
+
+/* ----- damage ----- */
+function hitBoss(d, x, y){
+  const b = G.boss;
+  if (G.ending || b.hp <= 0) return;
+  d = Math.round(d);
+  b.hp -= d; b.flash = .15;
+  ftext(x+rnd(-10,10), y, ''+d, d>40?'#ff5':'#fff', d>40?30:22);
+  G.shake = Math.max(G.shake, d>40?9:3);
+  burst(x,y,8,'#ffe066','s',180); sfx.punch();
+  G.combo++; G.comboT = 2; if (G.combo > G.bestCombo) G.bestCombo = G.combo;
+  earn(1);
+  if (b.hp <= 0) {
+    b.hp = 0;
+    startEnding('You defeated Anjali and saved the arena!', 'hero');
+  }
+}
+function hurtPlayer(d){
+  const p = G.p;
+  if (p.inv > 0 || G.ending) return;
+  d = d*G.h.def*(1 - .07*L('shield'));
+  p.hp -= d; p.inv = .7; G.combo = 0; G.shake = 8; sfx.hurt();
+  ftext(p.x,p.y-90,'-'+Math.round(d),'#ff6b6b',22); burst(p.x,p.y-40,8,'#ff6b6b');
+  if (p.hp <= 0){
+    G.kos++;
+    p.lives--;
+    if (p.lives <= 0) {
+      p.hp = 0;
+      startEnding('Anjali landed the final hit.', 'boss');
+      return;
+    }
+    p.hp = Math.round(maxHP()*.65); p.energy = 55; p.inv = 1.6;
+    ftext(p.x,p.y-120,'Life lost · '+p.lives+' left','#ff9ec2',22);
+    burst(p.x,p.y-50,24,'#ff7eb6','h',180);
+    say('Back on your paws. Keep moving!', 2.2); sfx.heal();
+  }
+}
+
+/* ----- Anjali's secret powers ----- */
+function bossAttack(){
+  const b = G.boss, p = G.p, cfg = G.cfg;
+  const list = ['fire','hearts','dash']; if (cfg.extra) list.push('storm','fire3');
+  const a = list[Math.floor(Math.random()*list.length)];
+  b.castT = .5; sfx.boss();
+  if (a === 'fire'){ say("Anjali's Fire!",1.2); G.proj.push({x:b.x-40,y:b.y-70,vx:-330,dmg:22*cfg.dmg,r:14}); }
+  else if (a === 'fire3'){ say('Triple Fire!',1.2); for (let i=0;i<3;i++) G.proj.push({x:b.x-40,y:b.y-30-i*45,vx:-300-i*20,dmg:16*cfg.dmg,r:12}); }
+  else if (a === 'hearts'){ say('Heart Bomb!',1.4); for (let i=0;i<5;i++) G.haz.push({type:'h',x:rnd(60,W-60),y:-20-i*50,vy:210,dmg:16*cfg.dmg}); }
+  else if (a === 'storm'){ say("Anjali's Firestorm!",1.6); for (let i=0;i<6;i++) G.haz.push({type:'f',x:80+i*120+rnd(-20,20),warn:1+i*.12,life:.5,dmg:20*cfg.dmg}); }
+  else if (a === 'dash'){ b.state = 'dash'; b.dp = 0; b.hitDone = false; b.dt = 0; say("Anjali's Rush!",1); }
+}
+function startEnding(msg, outcome){
+  if (G.ending) return;
+  G.ending = true; G.endT = 0; G.endMsg = msg || ''; G.endOutcome = outcome || 'boss';
+  G.boss.state = G.endOutcome === 'hero' ? 'defeated' : 'win';
+  G.flash = .8;
+  G.proj = []; G.haz = []; sfx.win();
+  say(G.endOutcome === 'hero' ? 'ANJALI IS DEFEATED!' : 'ANJALI WINS!', 6);
+  earn(G.endOutcome === 'hero' ? 50 : 15);
+  const k = save.mode, bst = save.best[k] || {time:0, combo:0};
+  bst.time = Math.max(bst.time, Math.floor(G.t)); bst.combo = Math.max(bst.combo, G.bestCombo); save.best[k] = bst;
+  saveNow();
+}
+
+/* ----- main update ----- */
+function update(dt){
+  const g = G, p = g.p, b = g.boss, cfg = g.cfg;
+  g.t += dt;
+  for (const k in g.cd) g.cd[k] = Math.max(0, g.cd[k]-dt);
+  p.inv = Math.max(0,p.inv-dt); p.atkT = Math.max(0,p.atkT-dt); p.dodgeT = Math.max(0,p.dodgeT-dt);
+  g.shake = Math.max(0, g.shake - dt*30); g.flash = Math.max(0, g.flash - dt);
+  b.flash = Math.max(0, b.flash-dt); b.msgT -= dt; b.castT = Math.max(0, b.castT-dt);
+  if (g.comboT > 0){ g.comboT -= dt; if (g.comboT <= 0) g.combo = 0; }
+
+  if (!g.ending){
+    // --- player movement ---
+    const dir = (held.right?1:0) - (held.left?1:0);
+    const sp = 230*g.h.spd*(1+.1*L('speed'));
+    if (dir) p.idle = 0; else p.idle += dt;
+    if (p.dodgeT > 0) p.x += p.face*520*dt;
+    else { p.x += dir*sp*dt; if (dir) p.face = dir; }
+    p.x = clamp(p.x, 40, W-40);
+    p.vy += 1500*dt; p.y += p.vy*dt;
+    if (p.y >= GROUND){ p.y = GROUND; p.vy = 0; p.jumps = 0; }
+    p.energy = Math.min(100, p.energy + 9*dt);
+
+    // --- boss ---
+    if (b.state === 'dash'){
+      b.dt += dt;
+      if (b.dp === 0){
+        const tx = p.x + 65; b.x += clamp(tx-b.x,-1,1)*Math.min(700*dt, Math.abs(tx-b.x));
+        if (!b.hitDone && Math.abs(b.x-p.x) < 60 && p.y > GROUND-90){ b.hitDone = true; hurtPlayer(26*cfg.dmg); }
+        if (Math.abs(b.x-tx) < 6 || b.dt > .8) b.dp = 1;
+      } else {
+        b.x += clamp(640-b.x,-1,1)*Math.min(420*dt, Math.abs(640-b.x));
+        if (Math.abs(b.x-640) < 6) b.state = 'idle';
+      }
+    } else {
+      b.x = 640 + Math.sin(g.t*1.3)*45;
+      b.atkT -= dt;
+      if (cfg.atk > 0 && b.atkT <= 0){
+        bossAttack();
+        b.atkT = Math.max(.7, cfg.atk - (cfg.endless ? g.t/80 : 0)) * rnd(.8,1.2);
+      }
+    }
+    // taunts
+    g.tauntT -= dt;
+    if (g.tauntT <= 0 && b.msgT <= 0){ say(TAUNTS[Math.floor(Math.random()*TAUNTS.length)], 2.4); g.tauntT = rnd(6,9); }
+
+    // ultimate multi-hit
+    if (g.ult){
+      g.ult.t += dt;
+      if (g.ult.t > .15){ g.ult.t = 0; g.ult.hits--; hitBoss(g.ult.dmg, b.x-20+rnd(-30,30), b.y-100+rnd(-30,30)); G.shake = 10; burst(b.x,b.y-90,10,'#ff9f1c','s',260); if (g.ult.hits <= 0) g.ult = null; }
+    }
+    // bonus coins
+    g.bonT -= dt;
+    if (g.bonT <= 0 && g.bon.length < 3){ g.bon.push({x:rnd(80,W-80),y:-10,vy:120}); g.bonT = rnd(6,10); }
+    for (let i=g.bon.length-1;i>=0;i--){
+      const c = g.bon[i]; c.y += c.vy*dt; if (c.y > GROUND-10) c.y = GROUND-10;
+      if (Math.abs(c.x-p.x) < 34 && Math.abs(c.y-(p.y-35)) < 50){ earn(5); ftext(c.x,c.y-20,'+5 🪙','#ffe066',18); burst(c.x,c.y,8,'#ffe066','s',150); sfx.up(); g.bon.splice(i,1); }
+    }
+    // challenges (bonus coins)
+    if (g.combo >= 10 && !g.ch.c10){ g.ch.c10 = true; earn(25); ftext(p.x,p.y-130,'Challenge: 10 combo! +25🪙','#ffe066',16); sfx.up(); }
+    if (g.t >= 30 && !g.ch.t30){ g.ch.t30 = true; earn(15); ftext(p.x,p.y-130,'Survived 30s! +15🪙','#ffe066',16); sfx.up(); }
+    if (g.t >= 60 && !g.ch.t60){ g.ch.t60 = true; earn(20); ftext(p.x,p.y-130,'Survived 60s! +20🪙','#ffe066',16); sfx.up(); }
+    // The boss wins if the timer runs out before her health reaches zero.
+    if (g.t >= cfg.time) startEnding('Time is up. Anjali wins this round.', 'boss');
+  } else {
+    g.endT += dt;
+    if (Math.random() < .6) { const x = rnd(0,W); g.parts.push({x,y:-10,vx:rnd(-40,40),vy:rnd(60,160),life:3,max:3,col:['#ff7eb6','#ffe066','#7fd7ff','#9dff9d','#fff'][Math.floor(rnd(0,5))],s:rnd(4,8),type:Math.random()<.3?'h':'f'}); }
+    if (g.endT > 2.2 && !g.shown){ g.shown = true; showEnd(); }
+  }
+
+  // projectiles
+  for (let i=g.proj.length-1;i>=0;i--){
+    const q = g.proj[i]; q.x += q.vx*dt; q.y += (q.vy||0)*dt;
+    if (Math.random()<.5) g.parts.push({x:q.x,y:q.y,vx:rnd(-20,20),vy:rnd(-30,30),life:.3,max:.3,col:q.fr?'#ffb347':'#ff4d4d',s:rnd(3,6),type:'c'});
+    let dead = q.x < -30 || q.x > W+30 || q.y < -30 || q.y > H;
+    if (q.fr){
+      if (!dead && Math.abs(q.x-b.x) < 42 && Math.abs(q.y-(b.y-75)) < 70){ hitBoss(q.dmg, q.x, q.y-10); dead = true; }
+    } else if (!dead && Math.abs(q.x-p.x) < 28 && Math.abs(q.y-(p.y-40)) < 45 && p.inv <= 0){ hurtPlayer(q.dmg); dead = true; }
+    if (dead) g.proj.splice(i,1);
+  }
+  // hazards
+  for (let i=g.haz.length-1;i>=0;i--){
+    const z = g.haz[i];
+    if (z.type === 'h'){
+      z.y += z.vy*dt;
+      if (Math.abs(z.x-p.x) < 26 && Math.abs(z.y-(p.y-40)) < 40 && p.inv <= 0){ hurtPlayer(z.dmg); burst(z.x,z.y,10,'#ff7eb6','h',140); g.haz.splice(i,1); }
+      else if (z.y > GROUND){ burst(z.x,GROUND,8,'#ff7eb6','h',120); g.haz.splice(i,1); }
+    } else {
+      if (z.warn > 0){ z.warn -= dt; if (z.warn <= 0) { G.shake = 6; sfx.fire(); } }
+      else { z.life -= dt; if (Math.abs(z.x-p.x) < 34 && p.y > GROUND-60) hurtPlayer(z.dmg); if (z.life <= 0) g.haz.splice(i,1); }
+    }
+  }
+  // particles + floating texts
+  for (let i=g.parts.length-1;i>=0;i--){
+    const q = g.parts[i]; q.life -= dt; q.x += q.vx*dt; q.y += q.vy*dt;
+    q.vy += (q.type==='h' ? -30 : 320)*dt;
+    if (q.life <= 0) g.parts.splice(i,1);
+  }
+  for (let i=g.txt.length-1;i>=0;i--){ const t = g.txt[i]; t.life -= dt*1.1; t.y -= 34*dt; if (t.life <= 0) g.txt.splice(i,1); }
+}
+
+/* ---------- 6) RENDERING ---------- */
+const cv = $('cv'), ctx = cv.getContext('2d');
+cv.width = W; cv.height = H;
+
+function makeBG(final){       // drawn ONCE onto an offscreen canvas for speed
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,H);
+  if (final){ g.addColorStop(0,'#1a0614'); g.addColorStop(.6,'#5a0f3a'); g.addColorStop(1,'#2a0a2a'); }
+  else { g.addColorStop(0,'#2b0f5e'); g.addColorStop(.55,'#8a3fb8'); g.addColorStop(1,'#ff9ec2'); }
+  x.fillStyle = g; x.fillRect(0,0,W,H);
+  for (let i=0;i<60;i++){ x.fillStyle = 'rgba(255,255,255,'+rnd(.3,.9)+')'; x.beginPath(); x.arc(rnd(0,W),rnd(0,220),rnd(.6,1.6),0,6.3); x.fill(); }
+  x.fillStyle = final ? '#ffb3c8' : '#fff7d6'; x.beginPath(); x.arc(660,80,36,0,6.3); x.fill();
+  x.fillStyle = final ? '#3a0a2a' : '#4b2a8a';
+  x.beginPath(); x.moveTo(0,300); for (let i=0;i<=8;i++) x.lineTo(i*100, 230+((i%2)?-40:30)+i*3); x.lineTo(W,300); x.lineTo(W,H); x.lineTo(0,H); x.fill();
+  x.fillStyle = final ? '#2a0620' : '#3a1c70';   // castle
+  x.fillRect(90,230,90,90); x.fillRect(80,210,20,30); x.fillRect(170,210,20,30); x.fillRect(120,190,30,50);
+  const gr = x.createLinearGradient(0,GROUND-10,0,H);
+  gr.addColorStop(0, final ? '#4a1030' : '#7b3fa0'); gr.addColorStop(1, final ? '#1a0610' : '#3d1a63');
+  x.fillStyle = gr; x.fillRect(0,GROUND-6,W,H-GROUND+6);
+  x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2;
+  for (let i=0;i<10;i++){ x.beginPath(); x.moveTo(i*90+20,GROUND-6); x.lineTo(i*90-30,H); x.stroke(); }
+  x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(0,GROUND-8,W,3);
+  return c;
+}
+let BG = null, BGF = null;
+
+function drawHeartShape(c,x,y,s,col){ c.fillStyle = col; c.beginPath(); c.moveTo(x,y+s*.3); c.bezierCurveTo(x-s,y-s*.6,x-s*.4,y-s*1.1,x,y-s*.4); c.bezierCurveTo(x+s*.4,y-s*1.1,x+s,y-s*.6,x,y+s*.3); c.fill(); }
+function drawStar(c,x,y,r,col){ c.fillStyle = col; c.beginPath(); for (let i=0;i<10;i++){ const a = -1.5708+i*.6283, rr2 = i%2 ? r*.45 : r; c.lineTo(x+Math.cos(a)*rr2, y+Math.sin(a)*rr2); } c.closePath(); c.fill(); }
+
+function render(){
+  const g = G, p = g.p, b = g.boss;
+  if (!BG){ BG = makeBG(false); BGF = makeBG(true); }
+  ctx.save();
+  if (g.shake > 0) ctx.translate(rnd(-g.shake,g.shake)*.5, rnd(-g.shake,g.shake)*.5);
+  ctx.drawImage(g.cfg.final ? BGF : BG, 0, 0);
+  // twinkles
+  for (let i=0;i<8;i++){ const a = .5+.5*Math.sin(g.t*3+i*2); drawStar(ctx, 60+i*97, 40+(i*53)%160, 3+a*2, 'rgba(255,255,255,'+(.4+a*.5)+')'); }
+  // floating background hearts
+  for (let i=0;i<6;i++){ const yy = (H - ((g.t*20 + i*80) % (H+40))); drawHeartShape(ctx, (i*137+Math.sin(g.t+i)*20)%W, yy, 7, 'rgba(255,126,182,.35)'); }
+
+  // hazards (warnings first)
+  for (const z of g.haz){
+    if (z.type === 'h') drawHeartShape(ctx, z.x, z.y, 16, '#ff4f9a');
+    else if (z.warn > 0){ ctx.fillStyle = 'rgba(255,60,60,'+(.25+.25*Math.sin(g.t*30))+')'; ctx.fillRect(z.x-30,GROUND-8,60,8); }
+    else { const gr = ctx.createLinearGradient(0,GROUND-220,0,GROUND); gr.addColorStop(0,'rgba(255,230,80,0)'); gr.addColorStop(.5,'#ff9f1c'); gr.addColorStop(1,'#ff3d00'); ctx.fillStyle = gr; ctx.fillRect(z.x-30,GROUND-220,60,220); }
+  }
+  // bonus coins
+  for (const c of g.bon){ ctx.fillStyle = '#ffd43b'; ctx.beginPath(); ctx.arc(c.x,c.y,11,0,6.3); ctx.fill(); ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = '#b8860b'; ctx.fillRect(c.x-2,c.y-6,4,12); }
+
+  // shadows
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(p.x,GROUND+2,26,7,0,0,6.3); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(b.x,GROUND+2,46,9,0,0,6.3); ctx.fill();
+
+  // Final mode gives Anjali a brighter boss aura.
+  if (g.cfg.final){
+    ctx.fillStyle = 'rgba(255,60,140,'+(.12+.08*Math.sin(g.t*8))+')'; ctx.beginPath(); ctx.arc(b.x,b.y-85,95+Math.sin(g.t*6)*6,0,6.3); ctx.fill();
+  }
+  ctx.save();
+  if (b.flash > 0) ctx.globalAlpha = .6;
+  const mood = b.state === 'win' ? 'win' : b.state === 'defeated' ? 'defeated' : (b.castT > 0 ? 'cast' : 'idle');
+  drawBoss(ctx, b.x, b.y, g.t, mood);
+  ctx.restore();
+
+  // hero
+  const sleepy = g.h.id === 'bear' && p.idle > 2.5 && !g.ending;
+  drawHero(ctx, p.x, p.y, g.h, p.face, g.t, {atk:p.atkT>0, dodge:p.dodgeT>0 || (p.inv>0 && Math.floor(g.t*20)%2===0), sleepy, down:g.ending});
+  if (sleepy){ ctx.fillStyle = '#fff'; ctx.font = 'bold '+(16+Math.sin(g.t*3)*3)+'px sans-serif'; ctx.fillText('Z', p.x+20, p.y-95-((g.t*20)%20)); ctx.fillText('z', p.x+34, p.y-110-((g.t*20)%20)); }
+
+  // projectiles
+  for (const q of g.proj){
+    if (q.star) drawStar(ctx,q.x,q.y,q.r+4,'#ffe066');
+    else { ctx.fillStyle = q.fr ? '#ff9f1c' : '#ff3d3d'; ctx.beginPath(); ctx.arc(q.x,q.y,q.r,0,6.3); ctx.fill(); ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.arc(q.x,q.y,q.r*.5,0,6.3); ctx.fill(); }
+  }
+  // particles
+  for (const q of g.parts){
+    ctx.globalAlpha = clamp(q.life/q.max,0,1);
+    if (q.type === 'h') drawHeartShape(ctx,q.x,q.y,q.s*1.4,q.col);
+    else if (q.type === 's') drawStar(ctx,q.x,q.y,q.s*1.3,q.col);
+    else if (q.type === 'f'){ ctx.fillStyle = q.col; ctx.fillRect(q.x,q.y,q.s,q.s*.6); }
+    else { ctx.fillStyle = q.col; ctx.beginPath(); ctx.arc(q.x,q.y,q.s*.7,0,6.3); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+
+  // boss speech bubble
+  if (b.msgT > 0 && b.msg){
+    ctx.font = 'bold 15px "Trebuchet MS",sans-serif';
+    const tw = ctx.measureText(b.msg).width + 20, bx = clamp(b.x - tw/2, 6, W-tw-6), by = 20;
+    ctx.fillStyle = '#fff'; rr(ctx,bx,by,tw,30,12); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(b.x-8,by+30); ctx.lineTo(b.x,by+42); ctx.lineTo(b.x+8,by+30); ctx.fill();
+    ctx.fillStyle = '#4a1a6b'; ctx.fillText(b.msg, bx+10, by+20);
+  }
+  // damage numbers
+  ctx.textAlign = 'center';
+  for (const t of g.txt){ ctx.globalAlpha = clamp(t.life,0,1); ctx.font = 'bold '+t.size+'px "Trebuchet MS",sans-serif'; ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.strokeText(t.s,t.x,t.y); ctx.fillStyle = t.col; ctx.fillText(t.s,t.x,t.y); }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+  // final boss vignette + flash
+  if (g.cfg.final){ const v = ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,W*.65); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(90,0,40,.55)'); ctx.fillStyle = v; ctx.fillRect(0,0,W,H); }
+  if (g.flash > 0){ ctx.fillStyle = 'rgba(255,255,255,'+clamp(g.flash,0,.7)+')'; ctx.fillRect(0,0,W,H); }
+  ctx.restore();
+}
+
+/* HUD (bars, coins, timers, cooldown overlays) */
+const padBtns = [...document.querySelectorAll('[data-act]')];
+function updateHUD(){
+  const g = G, p = g.p, b = g.boss;
+  $('pname').textContent = g.h.name;
+  $('lives').textContent = p.lives + (p.lives === 1 ? ' LIFE LEFT' : ' LIVES LEFT');
+  $('pbar').style.width = clamp(p.hp/maxHP()*100,0,100)+'%';
+  $('ebar').style.width = clamp(p.energy,0,100)+'%';
+  $('bbar').style.width = clamp(b.hp/b.max*100,0,100)+'%';
+  $('coins').textContent = 'COINS ' + save.coins;
+  $('combo').textContent = g.combo > 1 ? g.combo+' COMBO!' : '';
+  const rem = g.cfg.time === Infinity ? Math.floor(g.t)+'s' : Math.max(0,Math.ceil(g.cfg.time-g.t))+'s';
+  $('timer').textContent = 'TIME ' + rem;
+  padBtns.forEach(btn => {
+    const a = btn.dataset.act, u = btn.querySelector('u');
+    if (a === 'jump') return;
+    const r = g.cdm[a] ? clamp(g.cd[a]/(a==='ultimate'?Math.max(10,22-2*L('ult')):g.cdm[a]),0,1) : 0;
+    u.style.height = (r*100)+'%';
+    btn.classList.toggle('locked', (a==='special'&&L('special')<1)||(a==='ultimate'&&L('ult')<1));
+  });
+}
+
+/* main loop */
+let last = 0;
+function loop(ts){
+  if (!G || !G.run) return;
+  const dt = Math.min(.033, (ts-last)/1000 || 0); last = ts;
+  if (!G.paused) update(dt);
+  render(); updateHUD();
+  requestAnimationFrame(loop);
+}
+function startLoop(){ last = performance.now(); requestAnimationFrame(loop); }
+
+/* ---------- 7) INPUT (keyboard + pointer/touch) ---------- */
+const KEYMAP = {KeyJ:'attack',KeyK:'fire',KeyL:'heal',KeyW:'jump',ArrowUp:'jump',Space:'jump',ShiftLeft:'dodge',ShiftRight:'dodge',KeyS:'dodge',ArrowDown:'dodge',KeyU:'special',KeyI:'ultimate'};
+window.addEventListener('keydown', e => {
+  if (!G) return;
+  audioInit();
+  if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft') held.left = true;
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') held.right = true;
+  if (e.repeat) return;
+  if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
+  if (KEYMAP[e.code]) doAction(KEYMAP[e.code]);
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft') held.left = false;
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') held.right = false;
+});
+window.addEventListener('blur', () => { held.left = held.right = false; if (G && G.run && !G.paused && !G.ending) togglePause(); });
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+document.querySelectorAll('[data-act]').forEach(btn => {
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); doAction(btn.dataset.act); });   // one press = one action
+});
+document.querySelectorAll('[data-hold]').forEach(btn => {
+  const k = btn.dataset.hold;
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); held[k] = true; btn.classList.add('down'); try { btn.setPointerCapture(e.pointerId); } catch(_){} });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev => btn.addEventListener(ev, () => { held[k] = false; btn.classList.remove('down'); }));
+});
+// stop the page from scrolling/zooming while playing
+$('game').addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+
+/* ---------- 8) MENUS & SCREENS ---------- */
+function show(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
+function ov(id, on){ $(id).classList.toggle('on', on); }
+
+/* mode buttons */
+function buildModes(){
+  const box = $('modeBtns'); box.innerHTML = '';
+  Object.keys(MODES).forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (save.mode === k ? ' sel' : ''); b.textContent = MODES[k].name;
+    b.onclick = () => { audioInit(); save.mode = k; saveNow(); buildModes(); };
+    box.appendChild(b);
+  });
+  const bst = save.best[save.mode];
+  $('modeDesc').textContent = MODES[save.mode].desc + (bst ? '  Best: '+bst.time+'s · combo '+bst.combo : '');
+}
+/* hero cards */
+function buildHeroes(){
+  const box = $('heroCards'); box.innerHTML = '';
+  HEROES.forEach(h => {
+    const d = document.createElement('div'); d.className = 'card' + (save.hero === h.id ? ' sel' : '');
+    const c = document.createElement('canvas'); c.width = 110; c.height = 120; c.style.width = '110px';
+    drawHero(c.getContext('2d'), 55, 108, h, 1, 0.5, {});
+    d.appendChild(c);
+    const labs = ['Speed','Power','Defense','Heal'];
+    d.insertAdjacentHTML('beforeend', '<b>'+h.name+'</b><small>'+h.desc+'</small><div class="pips">'+
+      h.stats.map((s,i) => labs[i]+' '+'<span class="'+(s>0?'on':'')+'"></span>'.repeat(0)+[1,2,3,4,5].map(n => '<span class="'+(n<=s?'on':'')+'"></span>').join('')).join('<br>')+'</div>');
+    d.onclick = () => { audioInit(); save.hero = h.id; saveNow(); buildHeroes(); sfx.up(); };
+    box.appendChild(d);
+  });
+}
+/* upgrades */
+function buildUpgrades(){
+  $('upCoins').textContent = 'COINS · ' + save.coins;
+  const box = $('upList'); box.innerHTML = '';
+  UPS.forEach(u => {
+    const lv = L(u.k), row = document.createElement('div'); row.className = 'up';
+    row.innerHTML = '<div class="n">'+u.n+'<small>'+u.d+'</small></div><div class="lv">Lv '+lv+'/'+MAXLV+'</div>';
+    const b = document.createElement('button'); b.className = 'btn gold';
+    if (lv >= MAXLV){ b.textContent = 'MAX'; b.disabled = true; }
+    else { b.textContent = upCost(lv)+' coins'; b.disabled = save.coins < upCost(lv); b.style.opacity = b.disabled ? .5 : 1; }
+    b.onclick = () => { if (save.coins >= upCost(lv)){ save.coins -= upCost(lv); save.up[u.k] = lv+1; saveNow(); sfx.up(); buildUpgrades(); } };
+    row.appendChild(b); box.appendChild(row);
+  });
+}
+let upFromGame = false;
+function openUpgrades(){ audioInit(); upFromGame = !!(G && G.run && !G.ending); if (upFromGame) G.paused = true; buildUpgrades(); ov('upOv', true); }
+function closeUpgrades(){ ov('upOv', false); if (upFromGame && G && !$('pauseOv').classList.contains('on')) { G.paused = false; last = performance.now(); } saveNow(); }
+$('upClose').onclick = closeUpgrades;
+$('upReset').onclick = () => {
+  let refund = 0; UPS.forEach(u => { for (let i=0;i<L(u.k);i++) refund += upCost(i); });
+  save.coins += refund; save.up = {}; saveNow(); buildUpgrades();
+};
+$('menuUp').onclick = openUpgrades;
+$('btnUp').onclick = openUpgrades;
+
+/* pause */
+function togglePause(){
+  if (!G || !G.run || G.ending || $('upOv').classList.contains('on')) return;
+  G.paused = !G.paused; ov('pauseOv', G.paused); held.left = held.right = false;
+  if (!G.paused) last = performance.now();
+}
+$('btnPause').onclick = togglePause;
+$('pResume').onclick = togglePause;
+$('pRestart').onclick = () => { ov('pauseOv', false); startGame(); };
+$('pMenu').onclick = () => { ov('pauseOv', false); toMenu(); };
+
+/* flow */
+function startGame(){
+  audioInit(); ov('endOv', false); ov('pauseOv', false); ov('upOv', false);
+  held.left = held.right = false;
+  G = newGame(); show('game'); say('So you dare challenge me?', 2.5);
+  startLoop();
+}
+function toMenu(){ if (G) G.run = false; G = null; ov('endOv', false); buildModes(); show('menu'); }
+function showEnd(){
+  const g = G;
+  const won = g.endOutcome === 'hero';
+  $('endTitle').textContent = won ? 'You beat Anjali!' : 'Anjali wins this round.';
+  const lines = won
+    ? ['The arena is yours.', g.h.name+' landed the final blow.', 'Anjali fought hard. You fought smarter.']
+    : ["Anjali's power finished the fight.", 'Use dodge to slip past her rush.', 'Try another hero or a skill upgrade, then come back.'];
+  const box = $('endLines'); box.innerHTML = '';
+  lines.forEach((t,i) => { const p = document.createElement('p'); p.textContent = t; p.style.animationDelay = (i*0.45)+'s'; if (i === lines.length-1){ p.style.fontWeight = 800; p.style.color = '#ffe066'; } box.appendChild(p); });
+  $('endStats').textContent = (g.endMsg ? g.endMsg+'  ' : '') + 'Time '+Math.floor(g.t)+'s · Best combo '+g.bestCombo+' · Knockouts '+g.kos+' · Coins earned '+g.earned;
+  ov('endOv', true);
+}
+$('eAgain').onclick = startGame;
+$('eHero').onclick = () => { if (G) G.run = false; G = null; ov('endOv', false); buildHeroes(); show('select'); };
+$('eUp').onclick = openUpgrades;
+$('eMenu').onclick = toMenu;
+$('toSelect').onclick = () => { audioInit(); buildHeroes(); show('select'); };
+$('selBack').onclick = () => show('menu');
+$('startBtn').onclick = startGame;
+
+/* start-up */
+refreshMute(); buildModes();
+</script>
+</body>
+</html>

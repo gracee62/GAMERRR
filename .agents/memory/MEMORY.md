@@ -1,0 +1,1 @@
+- [Game direction](game-direction.md) — keep the boss threatening but defeatable, with cute, touch-first animal hero presentation.
